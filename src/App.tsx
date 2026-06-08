@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { GameEngine, GameState } from './game/Game';
+import { GameEngine } from './game/GameEngine';
+import { GameState } from './game/types';
 import { motion, AnimatePresence } from 'motion/react';
 import { Settings, Play, RefreshCw, X, Eye, Zap, Volume2, Maximize, MousePointer2, AlertTriangle } from 'lucide-react';
 
@@ -214,11 +215,7 @@ export default function App() {
                                                 <div className="absolute inset-x-0.5 inset-y-0.5 bg-yellow-900/60 rounded-full" />
                                             )}
                                             {isVent && (
-                                                <motion.div 
-                                                    animate={{ opacity: [0.4, 1, 0.4], scale: [1, 1.1, 1] }}
-                                                    transition={{ repeat: Infinity, duration: 2 }}
-                                                    className={`absolute inset-x-0.5 inset-y-0.5 border-2 ${isVent.locked ? 'border-red-500' : 'border-cyan-400'} rounded-sm`} 
-                                                />
+                                                <div className={`absolute inset-x-0.5 inset-y-0.5 border-2 ${isVent.locked ? 'border-red-500 animate-pulse' : 'border-cyan-400 animate-pulse'} rounded-sm`} />
                                             )}
                                         </div>
                                     );
@@ -261,43 +258,29 @@ export default function App() {
 
         {/* Admin Menu [F-ADMIN] */}
         {hudData.isAdminMode && hudData.showAdminMenu && (
-        <div className="absolute top-1/2 left-8 -translate-y-1/2 bg-black/85 border-2 border-red-900/80 p-6 w-64 space-y-6 pointer-events-auto z-50 font-mono shadow-[0_0_50px_rgba(150,0,0,0.3)] backdrop-blur-md">
-            <div className="text-red-500 text-xs font-bold border-b border-red-900/30 pb-2 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse" />
-                    CORE OVERRIDE
-                </div>
-                <div className="text-[8px] opacity-50">V.4.2.0-STALKER</div>
+        <div className="absolute top-1/2 left-8 -translate-y-1/2 bg-black/80 border border-red-900/50 p-4 w-48 space-y-4 pointer-events-auto z-50 font-mono">
+            <div className="text-red-500 text-xs font-bold border-b border-red-900/30 pb-1 flex items-center gap-2">
+                <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse" />
+                SYSTEM OVERRIDE
             </div>
-            
-            <div className="space-y-4">
-                <AdminBtn 
-                    active={hudData.isNoclip} 
+            <div className="space-y-3">
+                <button 
                     onClick={() => engineRef.current?.setAdminOption('noclip', !hudData.isNoclip)}
-                    label="NOCLIP MODE"
-                />
-                <AdminBtn 
-                    active={hudData.isInvincible} 
+                    className={`w-full py-1 text-[10px] border flex justify-between px-2 ${hudData.isNoclip ? 'bg-red-900/40 border-red-500 text-red-200' : 'bg-slate-900/40 border-slate-700 text-slate-400'}`}
+                >
+                    <span>NOCLIP</span>
+                    <span>{hudData.isNoclip ? '[ ON ]' : '[ OFF ]'}</span>
+                </button>
+                <button 
                     onClick={() => engineRef.current?.setAdminOption('invincible', !hudData.isInvincible)}
-                    label="GOD MODE"
-                />
+                    className={`w-full py-1 text-[10px] border flex justify-between px-2 ${hudData.isInvincible ? 'bg-red-900/40 border-red-500 text-red-200' : 'bg-slate-900/40 border-slate-700 text-slate-400'}`}
+                >
+                    <span>GOD MODE</span>
+                    <span>{hudData.isInvincible ? '[ ON ]' : '[ OFF ]'}</span>
+                </button>
             </div>
-
-            <div className="space-y-2 pt-2 border-t border-red-900/30">
-                <div className="text-[10px] text-red-700 font-bold uppercase select-none">Admin Comments</div>
-                <div className="bg-red-950/20 border border-red-900/30 p-2 text-[9px] text-red-400/80 lowercase italic h-20 overflow-y-auto custom-scrollbar">
-                   {">"} system initialized... <br/>
-                   {">"} monster hitbox: expanded <br/>
-                   {">"} monster speed: critical <br/>
-                   {">"} noclip status: {hudData.isNoclip ? 'active' : 'idle'} <br/>
-                   {">"} god mode status: {hudData.isInvincible ? 'active' : 'idle'} <br/>
-                   {">"} venting system: synced <br/>
-                   {">"} stalking protocol: lethal
-                </div>
-            </div>
-
-            <div className="text-[9px] text-slate-500 italic text-center">
-                Press [CTRL+ALT] to minimize
+            <div className="text-[9px] text-slate-500 italic">
+                Press CTRL+ALT to hide
             </div>
         </div>
         )}
@@ -527,18 +510,6 @@ function MenuBtn({ onClick, icon, label }: { onClick: () => void, icon: ReactNod
         >
             <span className="opacity-40 group-hover:opacity-100 group-hover:text-red-500 transition-all">{icon}</span>
             {label}
-        </button>
-    )
-}
-
-function AdminBtn({ active, onClick, label }: { active: boolean, onClick: () => void, label: string }) {
-    return (
-        <button 
-            onClick={onClick}
-            className={`w-full py-2 text-[10px] border-2 font-bold transition-all flex justify-between items-center px-3 ${active ? 'bg-red-900/30 border-red-600 text-red-100 shadow-[0_0_10px_rgba(150,0,0,0.2)]' : 'bg-slate-950/50 border-slate-800 text-slate-500'}`}
-        >
-            <span>{label}</span>
-            <span className={active ? 'text-red-400' : 'text-slate-700'}>{active ? '● ONLINE' : '○ OFFLINE'}</span>
         </button>
     )
 }
