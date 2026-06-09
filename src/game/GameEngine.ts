@@ -221,7 +221,7 @@ export class GameEngine {
 
   flashlight: THREE.SpotLight | null = null;
   setupFlashlight() {
-    this.flashlight = new THREE.SpotLight(0xffffff, 8.0, 20, Math.PI / 6, 0.3, 1);
+    this.flashlight = new THREE.SpotLight(0xffffff, 10.0, 25, Math.PI / 3, 0.5, 1);
     this.flashlight.position.set(0, 0, 0.1);
     this.camera.add(this.flashlight);
     this.camera.add(this.flashlight.target);
@@ -241,7 +241,7 @@ export class GameEngine {
     }
     if (this.flashlight) {
       this.flashlight.visible = this.player.isFlashlightOn;
-      this.flashlight.intensity = 8.0 * (this.player.flashlightBattery / 100);
+      this.flashlight.intensity = 10.0 * (this.player.flashlightBattery / 100);
     }
   }
 
