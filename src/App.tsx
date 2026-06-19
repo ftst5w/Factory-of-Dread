@@ -120,7 +120,7 @@ export default function App() {
   };
 
   return (
-    <div className="relative w-full h-screen bg-black overflow-hidden font-mono text-slate-200 uppercase tracking-wider">
+    <div className="fixed inset-0 w-full h-full h-[100dvh] bg-black overflow-hidden font-mono text-slate-200 uppercase tracking-wider select-none">
       <canvas 
         ref={canvasRef} 
         onClick={handleCanvasClick}
@@ -261,61 +261,61 @@ export default function App() {
           )}
 
           {/* Tactical Action Buttons Panel - Bottom Right Area */}
-          <div className="absolute right-6 bottom-6 z-30 pointer-events-none flex flex-col items-end gap-4">
+          <div className="absolute right-3 bottom-3 sm:right-6 sm:bottom-6 z-30 pointer-events-none flex flex-col items-end gap-2.5 sm:gap-4">
             {/* Top row of secondary action buttons */}
-            <div className="flex gap-3 pointer-events-auto">
+            <div className="flex gap-2 sm:gap-3 pointer-events-auto">
               {/* Flashlight button */}
               <ActionBtn 
-                icon={<Zap size={18} className={hudData.isFlashlightOn ? "text-yellow-400 fill-yellow-400" : "text-slate-450"} />}
+                icon={<Zap className={`w-4 h-4 sm:w-5 sm:h-5 ${hudData.isFlashlightOn ? "text-yellow-400 fill-yellow-400" : "text-slate-450"}`} />}
                 onTouchStart={() => {
                   if (engineRef.current) engineRef.current.toggleFlashlight();
                 }}
-                className={`w-12 h-12 ${hudData.isFlashlightOn ? "bg-yellow-950/40 border-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.3)]" : "bg-black/80 border-slate-800 text-slate-400"}`}
+                className={`w-10 h-10 sm:w-12 sm:h-12 ${hudData.isFlashlightOn ? "bg-yellow-950/40 border-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.3)]" : "bg-black/80 border-slate-800 text-slate-400"}`}
               />
 
               {/* Use Potion button */}
               <ActionBtn 
-                icon={<Sparkles size={18} className="text-cyan-400" />}
+                icon={<Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400" />}
                 onTouchStart={() => {
                   if (engineRef.current) engineRef.current.usePotion();
                 }}
-                className={`w-12 h-12 ${hudData.potionsHeld > 0 ? "bg-cyan-950/40 border-cyan-500 text-cyan-200 shadow-[0_0_8px_rgba(34,211,238,0.3)]" : "bg-black/80 border-slate-900 text-slate-600 opacity-40 hover:opacity-100"}`}
+                className={`w-10 h-10 sm:w-12 sm:h-12 ${hudData.potionsHeld > 0 ? "bg-cyan-950/40 border-cyan-500 text-cyan-200 shadow-[0_0_8px_rgba(34,211,238,0.3)]" : "bg-black/80 border-slate-900 text-slate-600 opacity-40 hover:opacity-100"}`}
               />
             </div>
 
             {/* Main Row: Sprint, Crouch, Interact */}
-            <div className="flex items-center gap-3 pointer-events-auto">
+            <div className="flex items-center gap-2.5 sm:gap-3 pointer-events-auto">
               {/* Crouch button */}
               <ActionBtn 
-                icon={<ChevronDown size={18} className="text-slate-300" />}
+                icon={<ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-slate-300" />}
                 onTouchStart={() => {
                   if (engineRef.current) engineRef.current.keys['ControlLeft'] = true;
                 }}
                 onTouchEnd={() => {
                   if (engineRef.current) engineRef.current.keys['ControlLeft'] = false;
                 }}
-                className={`w-12 h-12 ${engineRef.current?.keys['ControlLeft'] ? "bg-slate-800/80 border-slate-450 border-2" : "bg-black/80 border-slate-800"} text-slate-300`}
+                className={`w-10 h-10 sm:w-12 sm:h-12 ${engineRef.current?.keys['ControlLeft'] ? "bg-slate-800/80 border-slate-450 border-2" : "bg-black/80 border-slate-800"} text-slate-300`}
               />
 
               {/* Sprint button */}
               <ActionBtn 
-                icon={<Flame size={18} className="text-orange-500" />}
+                icon={<Flame className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />}
                 onTouchStart={() => {
                   if (engineRef.current) engineRef.current.keys['ShiftLeft'] = true;
                 }}
                 onTouchEnd={() => {
                   if (engineRef.current) engineRef.current.keys['ShiftLeft'] = false;
                 }}
-                className={`w-12 h-12 ${engineRef.current?.keys['ShiftLeft'] ? "bg-orange-950 border-orange-500 border-2" : "bg-black/80 border-slate-900"} ${hudData.stamina > 0 ? "text-orange-200" : "text-slate-600 opacity-45"}`}
+                className={`w-10 h-10 sm:w-12 sm:h-12 ${engineRef.current?.keys['ShiftLeft'] ? "bg-orange-950 border-orange-500 border-2" : "bg-black/80 border-slate-900"} ${hudData.stamina > 0 ? "text-orange-200" : "text-slate-600 opacity-45"}`}
               />
 
               {/* INTERACT Button - Larger */}
               <ActionBtn 
-                icon={<Hand size={22} className="text-red-400" />}
+                icon={<Hand className="w-5 h-5 sm:w-6 sm:h-6 text-red-400" />}
                 onTouchStart={() => {
                   if (engineRef.current) engineRef.current.tryInteract();
                 }}
-                className="w-16 h-16 bg-red-950/40 border border-red-500 rounded-full flex items-center justify-center animate-pulse shadow-[0_0_12px_rgba(239,68,68,0.3)]"
+                className="w-13 h-13 sm:w-16 sm:h-16 bg-red-950/40 border border-red-500 rounded-full flex items-center justify-center animate-pulse shadow-[0_0_12px_rgba(239,68,68,0.3)]"
               />
             </div>
           </div>
@@ -369,25 +369,25 @@ export default function App() {
 
       {/* HUD */}
       {gameState === 'playing' && (
-        <div className="absolute inset-0 pointer-events-none p-8 flex flex-col justify-between z-20">
+        <div className="absolute inset-0 pointer-events-none p-3 sm:p-5 md:p-8 flex flex-col justify-between z-20">
           <div className="flex justify-between items-start">
-                <div className="space-y-2">
-              <div className="text-red-500 font-bold text-sm">
+            <div className="space-y-1 sm:space-y-2">
+              <div className="text-red-500 font-bold text-[10px] sm:text-xs">
                 {hudData.leversActivated >= 6 && hudData.keysHeld >= 5 ? 'OBJECTIVE: REACH THE EXIT' : 'OBJECTIVES:'}
               </div>
-              <div className={`text-xl ${hudData.leversActivated >= 6 ? 'text-green-400' : 'text-yellow-400'}`}>
+              <div className={`text-sm sm:text-base md:text-xl font-bold ${hudData.leversActivated >= 6 ? 'text-green-400' : 'text-yellow-400'}`}>
                 LEVERS: {hudData.leversActivated} / 6
               </div>
-              <div className={`text-xl ${hudData.keysHeld >= 5 ? 'text-green-400' : 'text-yellow-400'}`}>
+              <div className={`text-sm sm:text-base md:text-xl font-bold ${hudData.keysHeld >= 5 ? 'text-green-400' : 'text-yellow-400'}`}>
                 KEYS: {hudData.keysHeld} / 5
               </div>
-              <div className="text-xs text-slate-500">FLOOR {hudData.levelIndex + 1}</div>
+              <div className="text-[10px] text-slate-500">FLOOR {hudData.levelIndex + 1}</div>
             </div>
 
-            <div className="flex flex-col items-end gap-4">
+            <div className="flex flex-col items-end gap-2 sm:gap-4">
                 {/* Minimap */}
                 {hudData.grid && (
-                    <div className="w-24 h-24 bg-slate-900/90 border border-slate-600 p-1 flex items-center justify-center">
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-slate-900/90 border border-slate-600 p-0.5 sm:p-1 flex items-center justify-center">
                         <div 
                             className="bg-slate-800 grid"
                             style={{ 
@@ -542,9 +542,9 @@ export default function App() {
              </AnimatePresence>
 
             {/* Resources */}
-            <div className="flex gap-8 items-end">
-                <div className="flex flex-col items-center gap-1">
-                    <div className="w-24 h-1.5 bg-black/60 border border-slate-700 overflow-hidden relative">
+            <div className="flex gap-3 sm:gap-8 items-end scale-90 sm:scale-100 origin-bottom">
+                <div className="flex flex-col items-center gap-0.5 sm:gap-1">
+                    <div className="w-16 sm:w-24 h-1 sm:h-1.5 bg-black/60 border border-slate-700 overflow-hidden relative">
                          <motion.div 
                             className={`h-full ${hudData.speedBoostTimer > 0 ? 'bg-cyan-400' : 'bg-slate-700'}`}
                             animate={{ width: `${(hudData.potionsHeld / 5) * 100}%` }}
@@ -557,25 +557,25 @@ export default function App() {
                             />
                         )}
                     </div>
-                    <span className="text-[10px] text-slate-500">POTIONS (1): {hudData.potionsHeld}</span>
+                    <span className="text-[8px] sm:text-[10px] text-slate-500">POTIONS {isMobile ? '' : '(1)'}: {hudData.potionsHeld}</span>
                 </div>
-                <div className="flex flex-col items-center gap-1">
-                    <div className="w-48 h-1.5 bg-black/60 border border-slate-700 overflow-hidden">
+                <div className="flex flex-col items-center gap-0.5 sm:gap-1">
+                    <div className="w-24 sm:w-48 h-1 sm:h-1.5 bg-black/60 border border-slate-700 overflow-hidden">
                         <motion.div 
                             className={`h-full ${hudData.stamina < 1 ? 'bg-red-500' : 'bg-blue-400'}`}
                             animate={{ width: `${(hudData.stamina / 5) * 100}%` }}
                         />
                     </div>
-                    <span className="text-[10px] text-slate-500">STAMINA</span>
+                    <span className="text-[8px] sm:text-[10px] text-slate-500">STAMINA</span>
                 </div>
-                <div className="flex flex-col items-center gap-1">
-                    <div className="w-32 h-1.5 bg-black/60 border border-slate-700 overflow-hidden flex items-center px-0.5">
+                <div className="flex flex-col items-center gap-0.5 sm:gap-1">
+                    <div className="w-20 sm:w-32 h-1 sm:h-1.5 bg-black/60 border border-slate-700 overflow-hidden flex items-center px-0.5">
                         <motion.div 
                             className="h-2/3 bg-yellow-500"
                             animate={{ width: `${hudData.battery}%` }}
                         />
                     </div>
-                    <span className="text-[10px] text-slate-500">FLASHLIGHT (F)</span>
+                    <span className="text-[8px] sm:text-[10px] text-slate-500 font-mono">FLASHLIGHT {isMobile ? '' : '(F)'}</span>
                 </div>
             </div>
           </div>
@@ -599,15 +599,15 @@ export default function App() {
 
       {/* Main Menu */}
       {gameState === 'menu' && (
-        <div className="absolute inset-0 flex items-center justify-center bg-[radial-gradient(ellipse_at_center,#1a0808_0%,#000_70%)] z-50">
-          <div className="text-center space-y-8 max-w-2xl px-6">
-            <h1 className="text-7xl font-bold text-red-700 tracking-widest animate-pulse shadow-red-900 border-b-2 border-red-900 pb-4">
+        <div className="absolute inset-0 overflow-y-auto flex items-center justify-center bg-[radial-gradient(ellipse_at_center,#1a0808_0%,#000_70%)] z-50 p-4 sm:p-6">
+          <div className="text-center space-y-4 sm:space-y-8 max-w-2xl px-2 sm:px-6 my-auto">
+            <h1 className="text-3xl sm:text-5xl md:text-7xl font-bold text-red-700 tracking-widest animate-pulse shadow-red-900 border-b border-red-950 pb-2 sm:pb-4">
               FACTORY OF DREAD
             </h1>
-            <h2 className="text-xl text-slate-400 tracking-[0.4em]">ESCAPE OR BE TAKEN</h2>
+            <h2 className="text-sm sm:text-lg md:text-xl text-slate-400 tracking-[0.2em] sm:tracking-[0.4em]">ESCAPE OR BE TAKEN</h2>
             
             {isMobile ? (
-              <div className="grid grid-cols-2 gap-6 text-left py-8 border-y border-slate-800 text-slate-400 text-xs">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:gap-6 text-left py-4 sm:py-8 border-y border-slate-900/60 text-slate-400 text-[10px] sm:text-xs">
                   <div><span className="bg-slate-900 px-1.5 border border-slate-600 mr-2 text-slate-200">JOYSTICK</span> MOVE</div>
                   <div><span className="bg-slate-900 px-1.5 border border-slate-600 mr-2 text-slate-200">DRAG RIGHT</span> LOOK</div>
                   <div><span className="bg-slate-900 px-1.5 border border-slate-600 mr-2 text-slate-200">FLAME BUTTON</span> SPRINT</div>
@@ -628,7 +628,7 @@ export default function App() {
               </div>
             )}
 
-            <p className="text-slate-500 text-[10px] leading-relaxed">
+            <p className="text-slate-500 text-[9px] sm:text-[10px] leading-relaxed max-w-md mx-auto">
                 Activate 6 levers AND find 5 keys in drawers to unlock the elevator. 
                 Search drawers for speed potions (Press 1 to use). 
                 Vents allow shortcuts but some require a Key to open.
@@ -637,7 +637,7 @@ export default function App() {
 
             <button 
                 onClick={startGame}
-                className="px-12 py-4 border-2 border-red-700 text-red-600 text-xl font-bold hover:bg-red-700 hover:text-black transition-all group relative overflow-hidden"
+                className="px-6 py-2 sm:px-12 sm:py-3.5 border-2 border-red-700 text-red-600 text-base sm:text-xl font-bold hover:bg-red-700 hover:text-black transition-all group relative overflow-hidden shadow-[0_0_15px_rgba(185,28,28,0.2)]"
             >
                 <div className="absolute inset-0 bg-red-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
                 <span className="relative z-10">INITIATE DESCENT</span>
