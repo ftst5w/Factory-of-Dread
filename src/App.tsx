@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode, type TouchEvent } from 'react';
 import { GameEngine } from './game/GameEngine';
 import { GameState } from './game/types';
 import { motion, AnimatePresence } from 'motion/react';
-import { Settings, Play, RefreshCw, X, Eye, Zap, Volume2, Maximize, MousePointer2, AlertTriangle } from 'lucide-react';
+import { Settings, Play, RefreshCw, X, Eye, Zap, Volume2, Maximize, MousePointer2, AlertTriangle, Flame, ChevronDown, Sparkles, Hand } from 'lucide-react';
 
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -16,6 +16,32 @@ export default function App() {
   });
   const [isPaused, setIsPaused] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+
+  const [isMobile, setIsMobile] = useState(false);
+  const [joystickVisual, setJoystickVisual] = useState<{ x: number, y: number, dx: number, dy: number, show: boolean }>({
+    x: 0,
+    y: 0,
+    dx: 0,
+    dy: 0,
+    show: false
+  });
+
+  const lookTouchIdRef = useRef<number | null>(null);
+  const lastLookPosRef = useRef({ x: 0, y: 0 });
+  const joystickTouchIdRef = useRef<number | null>(null);
+  const joystickCenterRef = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(
+        window.matchMedia('(pointer: coarse)').matches || 
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+      );
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     if (canvasRef.current && !engineRef.current) {
@@ -40,6 +66,7 @@ export default function App() {
     }
 
     const handlePointerLockChange = () => {
+      if (isMobile) return;
       const isLocked = document.pointerLockElement === canvasRef.current;
       if (!isLocked && engineRef.current?.gameState === 'playing') {
         setIsPaused(true);
@@ -64,29 +91,29 @@ export default function App() {
       window.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('pointerlockchange', handlePointerLockChange);
     };
-  }, [isPaused]);
+  }, [isPaused, isMobile]);
 
   const startGame = () => {
     engineRef.current?.initAudio();
     engineRef.current?.startLevel(0);
     setGameState('playing');
     setIsPaused(false);
-    canvasRef.current?.requestPointerLock();
+    if (!isMobile) canvasRef.current?.requestPointerLock();
   };
 
   const resumeGame = () => {
     setIsPaused(false);
-    canvasRef.current?.requestPointerLock();
+    if (!isMobile) canvasRef.current?.requestPointerLock();
   };
 
   const restartLevel = () => {
     engineRef.current?.startLevel(hudData.levelIndex);
     setIsPaused(false);
-    canvasRef.current?.requestPointerLock();
+    if (!isMobile) canvasRef.current?.requestPointerLock();
   };
 
   const handleCanvasClick = () => {
-    if (gameState === 'playing' && !isPaused) {
+    if (gameState === 'playing' && !isPaused && !isMobile) {
       canvasRef.current?.requestPointerLock();
     }
   };
@@ -106,6 +133,193 @@ export default function App() {
             : 'none'
         }}
       />
+
+      {/* Pause Button for Mobile & Desktop click convenience */}
+      {gameState === 'playing' && !isPaused && (
+        <button 
+          onClick={() => {
+            setIsPaused(true);
+            if (document.pointerLockElement) document.exitPointerLock();
+          }}
+          onTouchStart={(e) => {
+            e.stopPropagation();
+            setIsPaused(true);
+            if (document.pointerLockElement) document.exitPointerLock();
+          }}
+          className="absolute top-6 left-1/2 -translate-x-1/2 z-40 pointer-events-auto px-4 py-1.5 border border-slate-800 bg-black/70 hover:border-red-600 hover:text-red-500 text-[10px] text-slate-400 font-semibold tracking-widest rounded transition-all active:scale-90 flex items-center gap-1.5 animate-pulse"
+        >
+          <span className="w-1.5 h-1.5 bg-red-600 rounded-full" />
+          PAUSE DETECTED
+        </button>
+      )}
+
+      {/* Mobile Touch Overlay */}
+      {isMobile && gameState === 'playing' && !isPaused && (
+        <>
+          {/* Full screen Drag Lookout Overlay */}
+          <div 
+            className="absolute inset-0 z-15 touch-none select-none pointer-events-auto"
+            onTouchStart={(e) => {
+              for (let i = 0; i < e.changedTouches.length; i++) {
+                const touch = e.changedTouches[i];
+                if (touch.clientX < window.innerWidth / 2) {
+                  if (joystickTouchIdRef.current === null) {
+                    joystickTouchIdRef.current = touch.identifier;
+                    joystickCenterRef.current = { x: touch.clientX, y: touch.clientY };
+                    setJoystickVisual({ x: touch.clientX, y: touch.clientY, dx: 0, dy: 0, show: true });
+                  }
+                } else {
+                  if (lookTouchIdRef.current === null) {
+                    lookTouchIdRef.current = touch.identifier;
+                    lastLookPosRef.current = { x: touch.clientX, y: touch.clientY };
+                  }
+                }
+              }
+            }}
+            onTouchMove={(e) => {
+              for (let i = 0; i < e.touches.length; i++) {
+                const touch = e.touches[i];
+                if (touch.identifier === joystickTouchIdRef.current) {
+                  const dx = touch.clientX - joystickCenterRef.current.x;
+                  const dy = touch.clientY - joystickCenterRef.current.y;
+                  const dist = Math.hypot(dx, dy);
+                  const maxRadius = 55;
+                  const angle = Math.atan2(dy, dx);
+                  const moveX = dist > maxRadius ? Math.cos(angle) * maxRadius : dx;
+                  const moveY = dist > maxRadius ? Math.sin(angle) * maxRadius : dy;
+                  
+                  if (engineRef.current) {
+                    engineRef.current.touchMX = moveX / maxRadius;
+                    engineRef.current.touchMZ = moveY / maxRadius;
+                  }
+                  setJoystickVisual(prev => ({ ...prev, dx: moveX, dy: moveY }));
+                } else if (touch.identifier === lookTouchIdRef.current) {
+                  const dx = touch.clientX - lastLookPosRef.current.x;
+                  const dy = touch.clientY - lastLookPosRef.current.y;
+                  
+                  if (engineRef.current) {
+                    engineRef.current.mouseDX += dx * 1.8;
+                    engineRef.current.mouseDY += dy * 1.8;
+                  }
+                  lastLookPosRef.current = { x: touch.clientX, y: touch.clientY };
+                }
+              }
+            }}
+            onTouchEnd={(e) => {
+              for (let i = 0; i < e.changedTouches.length; i++) {
+                const touch = e.changedTouches[i];
+                if (touch.identifier === joystickTouchIdRef.current) {
+                  joystickTouchIdRef.current = null;
+                  if (engineRef.current) {
+                    engineRef.current.touchMX = 0;
+                    engineRef.current.touchMZ = 0;
+                  }
+                  setJoystickVisual({ x: 0, y: 0, dx: 0, dy: 0, show: false });
+                } else if (touch.identifier === lookTouchIdRef.current) {
+                  lookTouchIdRef.current = null;
+                }
+              }
+            }}
+            onTouchCancel={(e) => {
+              for (let i = 0; i < e.changedTouches.length; i++) {
+                const touch = e.changedTouches[i];
+                if (touch.identifier === joystickTouchIdRef.current) {
+                  joystickTouchIdRef.current = null;
+                  if (engineRef.current) {
+                    engineRef.current.touchMX = 0;
+                    engineRef.current.touchMZ = 0;
+                  }
+                  setJoystickVisual({ x: 0, y: 0, dx: 0, dy: 0, show: false });
+                } else if (touch.identifier === lookTouchIdRef.current) {
+                  lookTouchIdRef.current = null;
+                }
+              }
+            }}
+          />
+
+          {/* Visual Joystick Ring */}
+          {joystickVisual.show && (
+            <div 
+              className="fixed pointer-events-none z-50 rounded-full border border-slate-700/60 bg-slate-950/45 backdrop-blur-[2px] flex items-center justify-center shadow-[inset_0_0_8px_rgba(0,0,0,0.8)]"
+              style={{
+                left: joystickVisual.x - 55,
+                top: joystickVisual.y - 55,
+                width: 110,
+                height: 110,
+              }}
+            >
+              <div 
+                className="absolute w-12 h-12 bg-red-650/80 border border-red-500 rounded-full shadow-[0_0_12px_rgba(239,68,68,0.5)] flex items-center justify-center"
+                style={{
+                  transform: `translate(${joystickVisual.dx}px, ${joystickVisual.dy}px)`
+                }}
+              >
+                <div className="w-3.5 h-3.5 rounded-full bg-slate-200/40" />
+              </div>
+            </div>
+          )}
+
+          {/* Tactical Action Buttons Panel - Bottom Right Area */}
+          <div className="absolute right-6 bottom-6 z-35 pointer-events-none flex flex-col items-end gap-4">
+            {/* Top row of secondary action buttons */}
+            <div className="flex gap-3 pointer-events-auto">
+              {/* Flashlight button */}
+              <ActionBtn 
+                icon={<Zap size={18} className={hudData.isFlashlightOn ? "text-yellow-400 fill-yellow-400" : "text-slate-400"} />}
+                onTouchStart={() => {
+                  if (engineRef.current) engineRef.current.toggleFlashlight();
+                }}
+                className={`w-12 h-12 ${hudData.isFlashlightOn ? "bg-yellow-950/40 border-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.3)]" : "bg-black/80 border-slate-800 text-slate-400"}`}
+              />
+
+              {/* Use Potion button */}
+              <ActionBtn 
+                icon={<Sparkles size={18} className="text-cyan-400" />}
+                onTouchStart={() => {
+                  if (engineRef.current) engineRef.current.usePotion();
+                }}
+                className={`w-12 h-12 ${hudData.potionsHeld > 0 ? "bg-cyan-950/40 border-cyan-500 text-cyan-200 shadow-[0_0_8px_rgba(34,211,238,0.3)]" : "bg-black/80 border-slate-900 text-slate-600 opacity-40 hover:opacity-100"}`}
+              />
+            </div>
+
+            {/* Main Row: Sprint, Crouch, Interact */}
+            <div className="flex items-center gap-3 pointer-events-auto">
+              {/* Crouch button */}
+              <ActionBtn 
+                icon={<ChevronDown size={18} className="text-slate-300" />}
+                onTouchStart={() => {
+                  if (engineRef.current) engineRef.current.keys['ControlLeft'] = true;
+                }}
+                onTouchEnd={() => {
+                  if (engineRef.current) engineRef.current.keys['ControlLeft'] = false;
+                }}
+                className={`w-12 h-12 ${engineRef.current?.keys['ControlLeft'] ? "bg-slate-800/80 border-slate-400 border-2" : "bg-black/80 border-slate-800"} text-slate-300`}
+              />
+
+              {/* Sprint button */}
+              <ActionBtn 
+                icon={<Flame size={18} className="text-orange-450" />}
+                onTouchStart={() => {
+                  if (engineRef.current) engineRef.current.keys['ShiftLeft'] = true;
+                }}
+                onTouchEnd={() => {
+                  if (engineRef.current) engineRef.current.keys['ShiftLeft'] = false;
+                }}
+                className={`w-12 h-12 ${engineRef.current?.keys['ShiftLeft'] ? "bg-orange-850 border-orange-405 border-2" : "bg-black/80 border-slate-900"} ${hudData.stamina > 0 ? "text-orange-200" : "text-slate-600 opacity-45"}`}
+              />
+
+              {/* INTERACT Button - Larger */}
+              <ActionBtn 
+                icon={<Hand size={22} className="text-red-400" />}
+                onTouchStart={() => {
+                  if (engineRef.current) engineRef.current.tryInteract();
+                }}
+                className="w-15 h-15 bg-red-950/40 border border-red-500 rounded-full flex items-center justify-center animate-pulse shadow-[0_0_12px_rgba(239,68,68,0.3)]"
+              />
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Death Effects Overlay */}
       <AnimatePresence>
@@ -306,7 +520,7 @@ export default function App() {
                         exit={{ opacity: 0 }}
                         className="bg-black/70 border border-slate-600 px-4 py-2 text-sm flex items-center gap-3"
                     >
-                        <span className="bg-slate-700 px-2 py-0.5 border border-slate-400">E</span>
+                        <span className="bg-slate-700 px-2 py-0.5 border border-slate-400">{isMobile ? 'TAP' : 'E'}</span>
                         <span>
                             {hudData.nearLever ? 'ACTIVATE LEVER' : 
                              hudData.nearVent ? (hudData.nearVentLocked ? 'UNLOCK VENT (1 KEY)' : 'SQUEEZE THROUGH VENT') :
@@ -320,7 +534,7 @@ export default function App() {
                         animate={{ opacity: 1, y: 0 }}
                         className="bg-black/70 border border-slate-600 px-4 py-2 text-sm flex items-center gap-3"
                     >
-                        <span className="bg-slate-700 px-2 py-0.5 border border-slate-400">E</span>
+                        <span className="bg-slate-700 px-2 py-0.5 border border-slate-400">{isMobile ? 'TAP' : 'E'}</span>
                         <span>EXIT LOCKER</span>
                     </motion.div>
                 )}
@@ -391,15 +605,27 @@ export default function App() {
             </h1>
             <h2 className="text-xl text-slate-400 tracking-[0.4em]">ESCAPE OR BE TAKEN</h2>
             
-            <div className="grid grid-cols-2 gap-6 text-left py-8 border-y border-slate-800 text-slate-400 text-xs">
-                <div><span className="bg-slate-900 px-1.5 border border-slate-600 mr-2 text-slate-200">W A S D</span> MOVE</div>
-                <div><span className="bg-slate-900 px-1.5 border border-slate-600 mr-2 text-slate-200">MOUSE</span> LOOK</div>
-                <div><span className="bg-slate-900 px-1.5 border border-slate-600 mr-2 text-slate-200">SHIFT</span> SPRINT</div>
-                <div><span className="bg-slate-900 px-1.5 border border-slate-600 mr-2 text-slate-200">CTRL</span> CROUCH</div>
-                <div><span className="bg-slate-900 px-1.5 border border-slate-600 mr-2 text-slate-200">F</span> FLASHLIGHT</div>
-                <div><span className="bg-slate-900 px-1.5 border border-slate-600 mr-2 text-slate-200">E</span> INTERACT</div>
-                <div><span className="bg-slate-900 px-1.5 border border-slate-600 mr-2 text-slate-200">1</span> USE POTION</div>
-            </div>
+            {isMobile ? (
+              <div className="grid grid-cols-2 gap-6 text-left py-8 border-y border-slate-800 text-slate-400 text-xs">
+                  <div><span className="bg-slate-900 px-1.5 border border-slate-600 mr-2 text-slate-200">JOYSTICK</span> MOVE</div>
+                  <div><span className="bg-slate-900 px-1.5 border border-slate-600 mr-2 text-slate-200">DRAG RIGHT</span> LOOK</div>
+                  <div><span className="bg-slate-900 px-1.5 border border-slate-600 mr-2 text-slate-200">FLAME BUTTON</span> SPRINT</div>
+                  <div><span className="bg-slate-900 px-1.5 border border-slate-600 mr-2 text-slate-200">ARROW BUTTON</span> CROUCH</div>
+                  <div><span className="bg-slate-900 px-1.5 border border-slate-600 mr-2 text-slate-200">ZAP BUTTON</span> FLASHLIGHT</div>
+                  <div><span className="bg-slate-900 px-1.5 border border-slate-600 mr-2 text-slate-200">HAND BUTTON</span> INTERACT</div>
+                  <div><span className="bg-slate-900 px-1.5 border border-slate-600 mr-2 text-slate-200">SPARKLE</span> USE POTION</div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-6 text-left py-8 border-y border-slate-800 text-slate-400 text-xs">
+                  <div><span className="bg-slate-900 px-1.5 border border-slate-600 mr-2 text-slate-200">W A S D</span> MOVE</div>
+                  <div><span className="bg-slate-900 px-1.5 border border-slate-600 mr-2 text-slate-200">MOUSE</span> LOOK</div>
+                  <div><span className="bg-slate-900 px-1.5 border border-slate-600 mr-2 text-slate-200">SHIFT</span> SPRINT</div>
+                  <div><span className="bg-slate-900 px-1.5 border border-slate-600 mr-2 text-slate-200">CTRL</span> CROUCH</div>
+                  <div><span className="bg-slate-900 px-1.5 border border-slate-600 mr-2 text-slate-200">F</span> FLASHLIGHT</div>
+                  <div><span className="bg-slate-900 px-1.5 border border-slate-600 mr-2 text-slate-200">E</span> INTERACT</div>
+                  <div><span className="bg-slate-900 px-1.5 border border-slate-600 mr-2 text-slate-200">1</span> USE POTION</div>
+              </div>
+            )}
 
             <p className="text-slate-500 text-[10px] leading-relaxed">
                 Activate 6 levers AND find 5 keys in drawers to unlock the elevator. 
@@ -528,4 +754,34 @@ function SettingItem({ label, icon, value }: { label: string, icon: ReactNode, v
             </div>
         </div>
     )
+}
+
+function ActionBtn({ 
+  icon, 
+  onTouchStart, 
+  onTouchEnd, 
+  className = "" 
+}: { 
+  icon: ReactNode; 
+  onTouchStart: (e: TouchEvent) => void; 
+  onTouchEnd?: (e: TouchEvent) => void; 
+  className?: string;
+}) {
+  return (
+    <button
+      onTouchStart={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onTouchStart(e);
+      }}
+      onTouchEnd={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (onTouchEnd) onTouchEnd(e);
+      }}
+      className={`active:scale-95 transition-transform flex items-center justify-center border font-mono select-none rounded-full backdrop-blur-[2px] ${className}`}
+    >
+      {icon}
+    </button>
+  );
 }

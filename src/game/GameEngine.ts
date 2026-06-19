@@ -39,6 +39,8 @@ export class GameEngine {
   keys: Record<string, boolean> = {};
   mouseDX: number = 0;
   mouseDY: number = 0;
+  touchMX: number = 0;
+  touchMZ: number = 0;
   
   // Audio
   audioCtx: AudioContext | null = null;
@@ -270,6 +272,9 @@ export class GameEngine {
     if (this.keys['KeyS']) mz += 1;
     if (this.keys['KeyA']) mx -= 1;
     if (this.keys['KeyD']) mx += 1;
+
+    mx += this.touchMX;
+    mz += this.touchMZ;
     const moving = (mx !== 0 || mz !== 0);
 
     this.player.isSprinting = !!this.keys['ShiftLeft'] && moving && this.stamina > 0 && !this.player.isCrouching;
