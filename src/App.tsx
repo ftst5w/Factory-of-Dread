@@ -199,8 +199,8 @@ export default function App() {
                   const dy = touch.clientY - lastLookPosRef.current.y;
                   
                   if (engineRef.current) {
-                    engineRef.current.mouseDX += dx * 1.8;
-                    engineRef.current.mouseDY += dy * 1.8;
+                    engineRef.current.mouseDX += dx * 3.8;
+                    engineRef.current.mouseDY += dy * 3.4;
                   }
                   lastLookPosRef.current = { x: touch.clientX, y: touch.clientY };
                 }
