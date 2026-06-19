@@ -26,6 +26,9 @@ export default function App() {
     show: false
   });
 
+  const [isMobileSprinting, setIsMobileSprinting] = useState(false);
+  const [isMobileCrouching, setIsMobileCrouching] = useState(false);
+
   const lookTouchIdRef = useRef<number | null>(null);
   const lastLookPosRef = useRef({ x: 0, y: 0 });
   const joystickTouchIdRef = useRef<number | null>(null);
@@ -43,6 +46,17 @@ export default function App() {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  useEffect(() => {
+    if (isPaused || gameState !== 'playing') {
+      setIsMobileSprinting(false);
+      setIsMobileCrouching(false);
+      if (engineRef.current) {
+        engineRef.current.keys['ShiftLeft'] = false;
+        engineRef.current.keys['ControlLeft'] = false;
+      }
+    }
+  }, [isPaused, gameState]);
 
   useEffect(() => {
     if (canvasRef.current && !engineRef.current) {
@@ -289,24 +303,26 @@ export default function App() {
               <ActionBtn 
                 icon={<ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-slate-300" />}
                 onTouchStart={() => {
-                  if (engineRef.current) engineRef.current.keys['ControlLeft'] = true;
+                  setIsMobileCrouching(prev => {
+                    const next = !prev;
+                    if (engineRef.current) engineRef.current.keys['ControlLeft'] = next;
+                    return next;
+                  });
                 }}
-                onTouchEnd={() => {
-                  if (engineRef.current) engineRef.current.keys['ControlLeft'] = false;
-                }}
-                className={`w-10 h-10 sm:w-12 sm:h-12 ${engineRef.current?.keys['ControlLeft'] ? "bg-slate-800/80 border-slate-450 border-2" : "bg-black/80 border-slate-800"} text-slate-300`}
+                className={`w-10 h-10 sm:w-12 sm:h-12 ${isMobileCrouching ? "bg-slate-800/90 border-slate-400 border-2 shadow-[0_0_8px_rgba(255,255,255,0.3)]" : "bg-black/80 border-slate-800"} text-slate-300`}
               />
 
               {/* Sprint button */}
               <ActionBtn 
                 icon={<Flame className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />}
                 onTouchStart={() => {
-                  if (engineRef.current) engineRef.current.keys['ShiftLeft'] = true;
+                  setIsMobileSprinting(prev => {
+                    const next = !prev;
+                    if (engineRef.current) engineRef.current.keys['ShiftLeft'] = next;
+                    return next;
+                  });
                 }}
-                onTouchEnd={() => {
-                  if (engineRef.current) engineRef.current.keys['ShiftLeft'] = false;
-                }}
-                className={`w-10 h-10 sm:w-12 sm:h-12 ${engineRef.current?.keys['ShiftLeft'] ? "bg-orange-950 border-orange-500 border-2" : "bg-black/80 border-slate-900"} ${hudData.stamina > 0 ? "text-orange-200" : "text-slate-600 opacity-45"}`}
+                className={`w-10 h-10 sm:w-12 sm:h-12 ${isMobileSprinting ? "bg-orange-950 border-orange-500 border-2 shadow-[0_0_10px_rgba(249,115,22,0.4)]" : "bg-black/80 border-slate-900"} ${hudData.stamina > 0 ? "text-orange-200" : "text-slate-600 opacity-45"}`}
               />
 
               {/* INTERACT Button - Larger */}
