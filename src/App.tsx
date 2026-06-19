@@ -35,7 +35,8 @@ export default function App() {
     const checkMobile = () => {
       setIsMobile(
         window.matchMedia('(pointer: coarse)').matches || 
-        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+        window.innerWidth < 1024
       );
     };
     checkMobile();
@@ -158,7 +159,7 @@ export default function App() {
         <>
           {/* Full screen Drag Lookout Overlay */}
           <div 
-            className="absolute inset-0 z-15 touch-none select-none pointer-events-auto"
+            className="absolute inset-0 z-10 touch-none select-none pointer-events-auto"
             onTouchStart={(e) => {
               for (let i = 0; i < e.changedTouches.length; i++) {
                 const touch = e.changedTouches[i];
@@ -240,7 +241,7 @@ export default function App() {
           {/* Visual Joystick Ring */}
           {joystickVisual.show && (
             <div 
-              className="fixed pointer-events-none z-50 rounded-full border border-slate-700/60 bg-slate-950/45 backdrop-blur-[2px] flex items-center justify-center shadow-[inset_0_0_8px_rgba(0,0,0,0.8)]"
+              className="fixed pointer-events-none z-30 rounded-full border border-slate-700/60 bg-slate-950/45 backdrop-blur-[2px] flex items-center justify-center shadow-[inset_0_0_8px_rgba(0,0,0,0.8)]"
               style={{
                 left: joystickVisual.x - 55,
                 top: joystickVisual.y - 55,
@@ -249,7 +250,7 @@ export default function App() {
               }}
             >
               <div 
-                className="absolute w-12 h-12 bg-red-650/80 border border-red-500 rounded-full shadow-[0_0_12px_rgba(239,68,68,0.5)] flex items-center justify-center"
+                className="absolute w-12 h-12 bg-red-600/80 border border-red-500 rounded-full shadow-[0_0_12px_rgba(239,68,68,0.5)] flex items-center justify-center"
                 style={{
                   transform: `translate(${joystickVisual.dx}px, ${joystickVisual.dy}px)`
                 }}
@@ -260,12 +261,12 @@ export default function App() {
           )}
 
           {/* Tactical Action Buttons Panel - Bottom Right Area */}
-          <div className="absolute right-6 bottom-6 z-35 pointer-events-none flex flex-col items-end gap-4">
+          <div className="absolute right-6 bottom-6 z-30 pointer-events-none flex flex-col items-end gap-4">
             {/* Top row of secondary action buttons */}
             <div className="flex gap-3 pointer-events-auto">
               {/* Flashlight button */}
               <ActionBtn 
-                icon={<Zap size={18} className={hudData.isFlashlightOn ? "text-yellow-400 fill-yellow-400" : "text-slate-400"} />}
+                icon={<Zap size={18} className={hudData.isFlashlightOn ? "text-yellow-400 fill-yellow-400" : "text-slate-450"} />}
                 onTouchStart={() => {
                   if (engineRef.current) engineRef.current.toggleFlashlight();
                 }}
@@ -293,19 +294,19 @@ export default function App() {
                 onTouchEnd={() => {
                   if (engineRef.current) engineRef.current.keys['ControlLeft'] = false;
                 }}
-                className={`w-12 h-12 ${engineRef.current?.keys['ControlLeft'] ? "bg-slate-800/80 border-slate-400 border-2" : "bg-black/80 border-slate-800"} text-slate-300`}
+                className={`w-12 h-12 ${engineRef.current?.keys['ControlLeft'] ? "bg-slate-800/80 border-slate-450 border-2" : "bg-black/80 border-slate-800"} text-slate-300`}
               />
 
               {/* Sprint button */}
               <ActionBtn 
-                icon={<Flame size={18} className="text-orange-450" />}
+                icon={<Flame size={18} className="text-orange-500" />}
                 onTouchStart={() => {
                   if (engineRef.current) engineRef.current.keys['ShiftLeft'] = true;
                 }}
                 onTouchEnd={() => {
                   if (engineRef.current) engineRef.current.keys['ShiftLeft'] = false;
                 }}
-                className={`w-12 h-12 ${engineRef.current?.keys['ShiftLeft'] ? "bg-orange-850 border-orange-405 border-2" : "bg-black/80 border-slate-900"} ${hudData.stamina > 0 ? "text-orange-200" : "text-slate-600 opacity-45"}`}
+                className={`w-12 h-12 ${engineRef.current?.keys['ShiftLeft'] ? "bg-orange-950 border-orange-500 border-2" : "bg-black/80 border-slate-900"} ${hudData.stamina > 0 ? "text-orange-200" : "text-slate-600 opacity-45"}`}
               />
 
               {/* INTERACT Button - Larger */}
@@ -314,7 +315,7 @@ export default function App() {
                 onTouchStart={() => {
                   if (engineRef.current) engineRef.current.tryInteract();
                 }}
-                className="w-15 h-15 bg-red-950/40 border border-red-500 rounded-full flex items-center justify-center animate-pulse shadow-[0_0_12px_rgba(239,68,68,0.3)]"
+                className="w-16 h-16 bg-red-950/40 border border-red-500 rounded-full flex items-center justify-center animate-pulse shadow-[0_0_12px_rgba(239,68,68,0.3)]"
               />
             </div>
           </div>
